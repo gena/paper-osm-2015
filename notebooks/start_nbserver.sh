@@ -1,0 +1,3 @@
+ipython notebook --profile=osm 
+
+
