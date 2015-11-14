@@ -13,7 +13,7 @@ def generate_hydro_datasets(path, output_dir, step):
   path_prefix = map_path[:-14]
 
   if step == 'ldd':
-    cmd = u'gdal_translate -a_nodata 0 -of PCRaster -ot Float32 ' + path + ' ' + map_path
+    cmd = u'gdal_translate -a_nodata -9999 -of PCRaster -ot Float32 ' + path + ' ' + map_path
     print(cmd)
     subprocess.call(cmd, shell=True)
 
@@ -79,7 +79,7 @@ def generate_hydro_datasets(path, output_dir, step):
 
   if step == 'stream':
     ldd = pcr.readmap(path_prefix + '_ldd.map')
-    accuThreshold = 10000
+    accuThreshold = 100
     print("Computing stream ...")
     stream = pcr.ifthenelse(pcr.accuflux(ldd, 1) >= accuThreshold, pcr.boolean(1), pcr.boolean(0))
     pcr.report(stream, path_prefix + '_stream.map')
