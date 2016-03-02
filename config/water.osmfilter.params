@@ -1,0 +1,7 @@
+--keep=
+
+--keep-ways=
+natural=water or natural=spring or waterway= or landuse=basin or landuse=reservoir or barrier=ditch or landuse=saltpond
+
+--keep-relations=
+natural=water or natural=spring or waterway= or landuse=basin or landuse=reservoir or barrier=ditch or landuse=saltpond
