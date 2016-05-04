@@ -51,6 +51,7 @@ Dirctories
   results/ ...................... some of the results generated during analysis
     water_and_results_examples/
     water.zip
+    authoritative/ .............. screenshots comparing L8 watermask to some of the authoritative datastes
 
   src/
     javascript/
@@ -65,8 +66,11 @@ Dirctories
        OSM_stat_per_catchment.js ...... generates aggregated statistics
 
     python/
+       generate-hydro-datasets.py .......... script used to deleniate drainage network and compute HAND
+       generate-hydro-datasets-runner.py ... wraps the above script to avoid out-of-memory probles
 
     scripts/
+       convert.cmd .................... script used to extract hydrography from the OSM files
 
   web/ .......................... source code of the Google App Engine website (http://osm-water.appspot.com)
     httplib2
@@ -79,3 +83,48 @@ Dirctories
     README.md
     server.py
     six.py
+
+  AuthoritativeDatasets.docx ...... early comparisons to the authoritative datasets in Australia
+
+Tutorial
+========
+
+The overall analysis is performed in a number of steps, starting with the download of all required datasets, such as:
+
+* HydroBASINS
+* OpenStreetMap extracts, relevant for the study area
+
+Additional step include preparation of the regular grid file (grid.kml) used to parallelize the analysis.
+
+The actual steps required for the analysis are quite time consuming and include:
+
+1. Extraction of the hydrography from the the OSM files (scripts/convert.cmd)
+      Produces two shapefiles (polylines and polygons) representing hydrography
+
+2. Split linear hydrography features into small polylines in order to perform the analysis (notebooks/ExplodeShpPolylines.ipynb)
+
+3. Upload results of 2. to Google Fusion Table (UploadToFusionTable.ipynb)
+
+4. Select required catchment boundaries from HydroBASINS. Catchment size should be smaller than current Google Earth Engine download limit!
+
+5. Upload catchments to the Google Fusion Table
+
+6. Prepare regular grid file (grid.kml) and upload to Google Fusion Table, the resulting asset id needs to be updated in the OSM_automatic_NDWI.js script
+
+7. Download SRTM extracts clipped by catchment boundaries (src/javascript/download_SRTM.js)
+
+8. Deleniate drainage network for every sub-catchment DEM from 6. and compute HAND dataset (and all other related hydrological dataset) using python/generate-hydro-datasets-runner.py
+
+9. Convert results of 7. to regular grid tiles and upload to Google Earth Engine as raster assets.
+
+10. Adjust src/javascript/download_water.js do use the new HAND, grid (a copy of src/javascript-ee-playground/OSM_automatic_NDWI.js).
+
+11. Prepare training set for GEE Playground scripts (10.) by performing script runs for a number of tiles, repeat until the results are good for hilly areas,
+    For flat areas and sufficient cloud-free images the script should produce good results without any changes
+
+12. Detect surface water mask for every grid tile using src/javascript/download_water.js. src/javascript/templates provides example on how to parallelize water detection.
+
+13. Upload (re-tile if necessart) the resulting water mask to Google Earth Engine
+
+14. Compute positional and thematic accuracy using src/javascript-ee-playground/OSM_compute_buffers_export.js and src/javascript-ee-playground/OSM_stat_per_catchment.js
+
